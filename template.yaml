@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Resouces for invitng users, registration and login
+
+Parameters:
+  RoleName:
+    Type: String
+    Description: The name of the role that will be created for the Lambda function
+    Default: LambdaExecutionRole
+
+Globals:
+  Api:
+    OpenApiVersion: 3.0.1
+    MethodSettings:
+        ResourcePath: "/*"
+        HttpMethod: "*"
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 1000
+        CachingEnabled: false
+        DataTraceEnabled: true
+        LoggingLevel: INFO
+        MetricsEnabled: false
+    AccessLogSetting:
+      DestinationArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/access-log
+      Format: '$context.identity.sourceIp - - [$context.requestTime] "$context.httpMethod $context.routeKey $context.protocol" $context.status $context.responseLength $context.requestId $context.integrationLatency'
+    Cors:
+      AllowMethods: "'POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+      AllowCredentials: "'true'"
+
+      
+
+Resources:
+
+  MentorAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          title: Mentor API
+          version: '1.0'
+        paths:
+          /mentor/{mentorId}/background-info:
+            post:
+              summary: create or update mentor background info
+              operationId: registerUser
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/backgroundInfo'
+              responses:
+                '200':
+                  description: Background info created or updated successfully
+                  content:
+                    application/json:
+                      schema:
+                        $ref: '#/components/schemas/backgroundInfo'
+          
+        components:
+          schemas:
+            
+            
